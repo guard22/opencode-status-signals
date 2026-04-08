@@ -72,6 +72,23 @@ That command will:
 
 Restart OpenCode if it is already running.
 
+## Install from npm
+
+Once published, the shortest install path is:
+
+```bash
+npx opencode-iterm2-signals install
+```
+
+You can also install it globally first:
+
+```bash
+npm install -g opencode-iterm2-signals
+opencode-iterm2-signals install
+```
+
+After installation, restart OpenCode if it is already running.
+
 ## Preview the palette
 
 Cycle all four states on your current iTerm2 pane:
