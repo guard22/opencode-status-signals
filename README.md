@@ -8,6 +8,7 @@ This plugin paints your current iTerm2 pane based on the moment your OpenCode se
 - `complete` -> deep green
 - `question` -> warm amber
 - `permission` -> dark red
+- `error` -> dark crimson
 
 It is designed for the exact workflow where you want a passive, glanceable signal in the terminal itself instead of relying only on sounds or desktop notifications.
 
@@ -30,6 +31,7 @@ When OpenCode is running in the background, the most useful signals are usually:
 | `complete` | The session went idle and is ready for review | `#143222` |
 | `question` | OpenCode needs an answer from you | `#3A2A12` |
 | `permission` | OpenCode is blocked on permission | `#3A1717` |
+| `error` | OpenCode failed with a real error | `#3A101C` |
 
 The defaults are intentionally dark, so the terminal stays readable for long sessions.
 
@@ -40,9 +42,12 @@ The plugin listens to native OpenCode events and applies colors to the current `
 - `session.status` with `busy` -> `started`
 - `session.idle` -> `complete`
 - `permission.asked` -> `permission`
+- `session.error` -> `error`
 - `tool.execute.before` for the `question` tool -> `question`
 
 Subagent sessions are ignored so your top-level terminal pane does not flicker because of nested work.
+
+User-cancelled sessions are also ignored for the `error` color, so hitting escape does not paint the pane like a failure.
 
 ## Requirements
 
@@ -63,6 +68,7 @@ That command will:
 
 1. Copy the plugin into `~/.config/opencode/plugins/opencode-iterm2-signals.js`
 2. Create a default config at `~/.config/opencode/opencode-iterm2-signals.json` if it does not already exist
+3. Backfill any newly added default keys into an existing config without overwriting your colors
 
 Restart OpenCode if it is already running.
 
@@ -78,6 +84,12 @@ Or preview a single state:
 
 ```bash
 npx github:guard22/opencode-iterm2-signals preview question
+```
+
+There is also an explicit error preview:
+
+```bash
+npx github:guard22/opencode-iterm2-signals preview error
 ```
 
 ## Check your setup
@@ -112,7 +124,8 @@ Default config:
     "started": "#13233A",
     "complete": "#143222",
     "question": "#3A2A12",
-    "permission": "#3A1717"
+    "permission": "#3A1717",
+    "error": "#3A101C"
   }
 }
 ```
@@ -125,6 +138,7 @@ Default config:
 - `colors.complete`: Background color for finished work.
 - `colors.question`: Background color when OpenCode needs an answer.
 - `colors.permission`: Background color when OpenCode needs permission.
+- `colors.error`: Background color when OpenCode hits an actual error.
 
 ## Manual install
 
@@ -146,6 +160,12 @@ node src/cli.js install
 ## Future-friendly package layout
 
 This repository is structured as a normal npm package with a CLI entrypoint and a plugin export, so it can be published to npm later without changing the user-facing workflow.
+
+It also includes `publishConfig.access=public` and is safe to validate with:
+
+```bash
+npm run package:check
+```
 
 ## License
 

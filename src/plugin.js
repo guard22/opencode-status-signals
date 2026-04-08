@@ -11,7 +11,8 @@ const DEFAULT_CONFIG = Object.freeze({
     started: "#13233A",
     complete: "#143222",
     question: "#3A2A12",
-    permission: "#3A1717"
+    permission: "#3A1717",
+    error: "#3A101C"
   }
 })
 
@@ -157,6 +158,11 @@ function getEventSessionId(event) {
   return getStringField(properties, "sessionID")
 }
 
+function getEventErrorName(event) {
+  const errorRecord = getNestedRecord(event, "properties", "error")
+  return getStringField(errorRecord, "name")
+}
+
 function isIterm2Session() {
   if (process.platform !== "darwin") {
     return false
@@ -274,6 +280,20 @@ export const Iterm2SignalsPlugin = async () => {
         }
 
         await applyStateColor("permission")
+        return
+      }
+
+      if (event.type === "session.error") {
+        const sessionId = getEventSessionId(event)
+        if (isChildSession(sessionId)) {
+          return
+        }
+
+        if (getEventErrorName(event) === "MessageAbortedError") {
+          return
+        }
+
+        await applyStateColor("error")
       }
     },
 

@@ -1,6 +1,6 @@
 {
   "name": "opencode-iterm2-signals",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Ambient iTerm2 background colors for OpenCode session states.",
   "type": "module",
   "main": "./src/plugin.js",
@@ -21,7 +21,8 @@
     "check": "node --check src/plugin.js && node --check src/cli.js",
     "doctor": "node src/cli.js doctor",
     "install:global": "node src/cli.js install",
-    "preview": "node src/cli.js preview"
+    "preview": "node src/cli.js preview",
+    "package:check": "npm pack --dry-run"
   },
   "keywords": [
     "opencode",
@@ -40,6 +41,9 @@
   "homepage": "https://github.com/guard22/opencode-iterm2-signals#readme",
   "bugs": {
     "url": "https://github.com/guard22/opencode-iterm2-signals/issues"
+  },
+  "publishConfig": {
+    "access": "public"
   },
   "engines": {
     "node": ">=18"

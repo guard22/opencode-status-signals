@@ -16,7 +16,8 @@ const DEFAULT_CONFIG = Object.freeze({
     started: "#13233A",
     complete: "#143222",
     question: "#3A2A12",
-    permission: "#3A1717"
+    permission: "#3A1717",
+    error: "#3A101C"
   }
 })
 
@@ -85,6 +86,42 @@ const pluginDestination = path.join(pluginsDir, PLUGIN_FILE)
 const configPath = path.join(opencodeDir, CONFIG_FILE)
 const sourcePluginPath = path.join(__dirname, "plugin.js")
 
+function isRecord(value) {
+  return value !== null && typeof value === "object" && !Array.isArray(value)
+}
+
+function mergeConfig(baseConfig, overrideConfig) {
+  const merged = {
+    ...baseConfig,
+    colors: {
+      ...baseConfig.colors
+    }
+  }
+
+  if (!isRecord(overrideConfig)) {
+    return merged
+  }
+
+  if (typeof overrideConfig.enabled === "boolean") {
+    merged.enabled = overrideConfig.enabled
+  }
+
+  if (typeof overrideConfig.fallbackToCurrentSession === "boolean") {
+    merged.fallbackToCurrentSession = overrideConfig.fallbackToCurrentSession
+  }
+
+  if (isRecord(overrideConfig.colors)) {
+    for (const state of Object.keys(merged.colors)) {
+      const value = overrideConfig.colors[state]
+      if (typeof value === "string" && /^#?[0-9a-fA-F]{6}$/.test(value)) {
+        merged.colors[state] = value.startsWith("#") ? value : `#${value}`
+      }
+    }
+  }
+
+  return merged
+}
+
 function printUsage() {
   console.log(`OpenCode iTerm2 Signals
 
@@ -92,7 +129,7 @@ Usage:
   ${PACKAGE_NAME} install
   ${PACKAGE_NAME} uninstall
   ${PACKAGE_NAME} doctor
-  ${PACKAGE_NAME} preview [started|complete|question|permission|all]
+  ${PACKAGE_NAME} preview [started|complete|question|permission|error|all]
 `)
 }
 
@@ -110,11 +147,17 @@ function writeDefaultConfigIfMissing() {
   return true
 }
 
+function syncConfigDefaults() {
+  const config = loadConfig()
+  ensureDirectory(opencodeDir)
+  fs.writeFileSync(configPath, `${JSON.stringify(config, null, 2)}\n`, "utf8")
+}
+
 function loadConfig() {
   try {
-    return JSON.parse(fs.readFileSync(configPath, "utf8"))
+    return mergeConfig(DEFAULT_CONFIG, JSON.parse(fs.readFileSync(configPath, "utf8")))
   } catch {
-    return DEFAULT_CONFIG
+    return mergeConfig(DEFAULT_CONFIG, null)
   }
 }
 
@@ -132,12 +175,15 @@ function commandInstall() {
   ensureDirectory(pluginsDir)
   fs.copyFileSync(sourcePluginPath, pluginDestination)
   const createdConfig = writeDefaultConfigIfMissing()
+  if (!createdConfig) {
+    syncConfigDefaults()
+  }
 
   console.log(`Installed ${PLUGIN_FILE} to ${pluginDestination}`)
   if (createdConfig) {
     console.log(`Created default config at ${configPath}`)
   } else {
-    console.log(`Kept existing config at ${configPath}`)
+    console.log(`Updated existing config defaults at ${configPath}`)
   }
 
   console.log("Restart OpenCode if it is already running.")
@@ -184,11 +230,17 @@ function commandDoctor() {
   for (const [label, passed, value] of checks) {
     console.log(`${passed ? "[ok]" : "[warn]"} ${label}: ${value}`)
   }
+
+  const config = loadConfig()
+  console.log("\nConfigured colors:")
+  for (const [state, color] of Object.entries(config.colors || {})) {
+    console.log(`- ${state}: ${color}`)
+  }
 }
 
 async function commandPreview(stateName) {
   const config = loadConfig()
-  const states = ["started", "complete", "question", "permission"]
+  const states = ["started", "complete", "question", "permission", "error"]
 
   if (!stateName || stateName === "all") {
     for (const state of states) {
