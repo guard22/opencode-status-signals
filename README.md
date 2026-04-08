@@ -2,6 +2,16 @@
 
 Ambient background colors for `OpenCode` sessions in `iTerm2`.
 
+## Recommended install
+
+The supported install path for this project is `npx` directly from GitHub:
+
+```bash
+npx github:guard22/opencode-iterm2-signals install
+```
+
+If the npm registry flow is temporarily blocked by account policy or publish auth, this GitHub `npx` path remains the source of truth.
+
 This plugin paints your current iTerm2 pane based on the moment your OpenCode session is in:
 
 - `started` -> deep blue
@@ -72,22 +82,11 @@ That command will:
 
 Restart OpenCode if it is already running.
 
-## Install from npm
+## Registry note
 
-Once published, the shortest install path is:
+This repository is packaged like a normal npm module, but the recommended day-to-day install command is still the GitHub-based `npx` form above.
 
-```bash
-npx opencode-iterm2-signals install
-```
-
-You can also install it globally first:
-
-```bash
-npm install -g opencode-iterm2-signals
-opencode-iterm2-signals install
-```
-
-After installation, restart OpenCode if it is already running.
+That keeps the install path stable even when npm publish auth is being changed or reconfigured.
 
 ## Preview the palette
 
@@ -173,6 +172,7 @@ node src/cli.js install
 - It changes the pane background, not your desktop wallpaper or macOS accent color.
 - The last state remains visible until the next tracked event changes it.
 - The plugin does nothing outside iTerm2 on macOS.
+- The README intentionally documents the GitHub `npx` install flow as the primary path.
 
 ## Future-friendly package layout
 
