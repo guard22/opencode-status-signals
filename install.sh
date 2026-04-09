@@ -86,7 +86,7 @@ function installEntry() {
     {
       defaultTheme: "opencode",
       startedTheme: "tokyonight",
-      completeTheme: "everforest",
+      completeTheme: "opencode",
       questionTheme: "matrix",
       permissionTheme: "orng",
       errorTheme: "dracula",

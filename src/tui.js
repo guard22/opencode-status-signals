@@ -7,7 +7,7 @@ const DEFAULT_OPTIONS = Object.freeze({
   pollMs: 500,
   defaultTheme: "opencode",
   startedTheme: "tokyonight",
-  completeTheme: "everforest",
+  completeTheme: "opencode",
   questionTheme: "matrix",
   permissionTheme: "orng",
   errorTheme: "dracula"

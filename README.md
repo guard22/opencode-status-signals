@@ -23,7 +23,7 @@ By default it uses stable built-in OpenCode themes:
 | --- | --- |
 | `default` | `opencode` |
 | `started` | `tokyonight` |
-| `complete` | `everforest` |
+| `complete` | `opencode` |
 | `question` | `matrix` |
 | `permission` | `orng` |
 | `error` | `dracula` |
@@ -133,7 +133,7 @@ Example:
       {
         "defaultTheme": "opencode",
         "startedTheme": "tokyonight",
-        "completeTheme": "everforest",
+        "completeTheme": "opencode",
         "questionTheme": "matrix",
         "permissionTheme": "orng",
         "errorTheme": "dracula"
