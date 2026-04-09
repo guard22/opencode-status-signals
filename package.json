@@ -1,15 +1,12 @@
 {
-  "name": "opencode-iterm2-signals",
-  "version": "0.2.0",
-  "description": "Ambient iTerm2 background colors for OpenCode session states.",
+  "name": "opencode-session-themes",
+  "version": "0.3.0",
+  "description": "Session-aware OpenCode TUI theme switching with in-app mapping UI.",
   "type": "module",
-  "main": "./src/plugin.js",
+  "main": "./src/tui.js",
   "exports": {
-    ".": "./src/plugin.js",
-    "./cli": "./src/cli.js"
-  },
-  "bin": {
-    "opencode-iterm2-signals": "src/cli.js"
+    ".": "./src/tui.js",
+    "./tui": "./src/tui.js"
   },
   "files": [
     "src",
@@ -18,18 +15,15 @@
     ".gitignore"
   ],
   "scripts": {
-    "check": "node --check src/plugin.js && node --check src/cli.js",
-    "doctor": "node src/cli.js doctor",
-    "install:global": "node src/cli.js install",
-    "preview": "node src/cli.js preview",
+    "check": "node --check src/tui.js",
     "package:check": "npm pack --dry-run"
   },
   "keywords": [
     "opencode",
     "opencode-plugin",
-    "iterm2",
-    "macos",
-    "ambient",
+    "tui",
+    "themes",
+    "session",
     "status"
   ],
   "author": "guard22",

@@ -1,188 +1,162 @@
-# OpenCode iTerm2 Signals
+# OpenCode Session Themes
 
-Ambient background colors for `OpenCode` sessions in `iTerm2`.
+Session-aware OpenCode theme switching driven by OpenCode's own TUI state.
 
-## Recommended install
+This plugin does not touch `iTerm2` or any other terminal emulator. It changes the **OpenCode theme itself** based on the current session state, so the behavior works at the OpenCode layer instead of the terminal layer.
 
-The supported install path for this project is `npx` directly from GitHub:
+## What it does
 
-```bash
-npx github:guard22/opencode-iterm2-signals install
-```
+The plugin maps these states to themes:
 
-If the npm registry flow is temporarily blocked by account policy or publish auth, this GitHub `npx` path remains the source of truth.
+- `default`
+- `started`
+- `complete`
+- `question`
+- `permission`
+- `error`
 
-This plugin paints your current iTerm2 pane based on the moment your OpenCode session is in:
+By default it uses stable built-in OpenCode themes:
 
-- `started` -> deep blue
-- `complete` -> deep green
-- `question` -> warm amber
-- `permission` -> dark red
-- `error` -> dark crimson
+| State | Default theme |
+| --- | --- |
+| `default` | `opencode` |
+| `started` | `tokyonight` |
+| `complete` | `everforest` |
+| `question` | `matrix` |
+| `permission` | `orng` |
+| `error` | `dracula` |
 
-It is designed for the exact workflow where you want a passive, glanceable signal in the terminal itself instead of relying only on sounds or desktop notifications.
+## Why this approach
 
-## Why this exists
+This project started as a terminal-color experiment, but the correct long-term solution is to use OpenCode's own theme system.
 
-When OpenCode is running in the background, the most useful signals are usually:
+That gives you:
 
-- it started working again
-- it finished
-- it asked you a question
-- it is blocked on permission
+- no terminal-specific hacks
+- no AppleScript
+- no dependency on `iTerm2`
+- the same behavior in any terminal that can run OpenCode
+- a cleaner mental model: **session state -> OpenCode theme**
 
-`OpenCode iTerm2 Signals` maps those moments directly to terminal background colors, so you can tell the state of the session from peripheral vision.
+## Interactive setup inside OpenCode
 
-## Default palette
+The plugin includes an in-app mapping flow, so you can configure themes directly inside OpenCode.
 
-| Event | Meaning | Default color |
-| --- | --- | --- |
-| `started` | OpenCode is actively working | `#13233A` |
-| `complete` | The session went idle and is ready for review | `#143222` |
-| `question` | OpenCode needs an answer from you | `#3A2A12` |
-| `permission` | OpenCode is blocked on permission | `#3A1717` |
-| `error` | OpenCode failed with a real error | `#3A101C` |
+Commands:
 
-The defaults are intentionally dark, so the terminal stays readable for long sessions.
+- `/theme-states`
+- `/theme-states-reset`
+
+The main flow lets you:
+
+1. pick a state
+2. choose a built-in theme
+3. preview it immediately
+4. confirm or revert
+5. save the mapping
+
+Mappings are stored in the plugin KV store as local user preferences.
 
 ## How it works
 
-The plugin listens to native OpenCode events and applies colors to the current `iTerm2` session through AppleScript:
+The plugin listens to native OpenCode session events and derives the current theme from the active session view.
 
-- `session.status` with `busy` -> `started`
-- `session.idle` -> `complete`
-- `permission.asked` -> `permission`
-- `session.error` -> `error`
-- `tool.execute.before` for the `question` tool -> `question`
+Signals used:
 
-Subagent sessions are ignored so your top-level terminal pane does not flicker because of nested work.
+- `session.status`
+- `session.idle`
+- `permission.asked`
+- `permission.replied`
+- `question.asked`
+- `question.replied`
+- `question.rejected`
+- `session.error`
 
-User-cancelled sessions are also ignored for the `error` color, so hitting escape does not paint the pane like a failure.
+Theme priority is:
 
-## Requirements
+1. `error`
+2. `permission`
+3. `question`
+4. `started`
+5. `complete`
+6. `default`
 
-- macOS
-- iTerm2
-- OpenCode running in iTerm2
-- Node.js 18+
+## Install
 
-## Install with npx from GitHub
+Add the plugin to your OpenCode `tui.json`.
 
-This repository is packaged so you can install it directly from GitHub without waiting for npm publication:
-
-```bash
-npx github:guard22/opencode-iterm2-signals install
-```
-
-That command will:
-
-1. Copy the plugin into `~/.config/opencode/plugins/opencode-iterm2-signals.js`
-2. Create a default config at `~/.config/opencode/opencode-iterm2-signals.json` if it does not already exist
-3. Backfill any newly added default keys into an existing config without overwriting your colors
-
-Restart OpenCode if it is already running.
-
-## Registry note
-
-This repository is packaged like a normal npm module, but the recommended day-to-day install command is still the GitHub-based `npx` form above.
-
-That keeps the install path stable even when npm publish auth is being changed or reconfigured.
-
-## Preview the palette
-
-Cycle all four states on your current iTerm2 pane:
-
-```bash
-npx github:guard22/opencode-iterm2-signals preview all
-```
-
-Or preview a single state:
-
-```bash
-npx github:guard22/opencode-iterm2-signals preview question
-```
-
-There is also an explicit error preview:
-
-```bash
-npx github:guard22/opencode-iterm2-signals preview error
-```
-
-## Check your setup
-
-```bash
-npx github:guard22/opencode-iterm2-signals doctor
-```
-
-## Uninstall
-
-```bash
-npx github:guard22/opencode-iterm2-signals uninstall
-```
-
-This removes the installed plugin file and keeps your config JSON in place.
-
-## Configuration
-
-Config file:
+Global config path:
 
 ```text
-~/.config/opencode/opencode-iterm2-signals.json
+~/.config/opencode/tui.json
 ```
 
-Default config:
+Example:
 
 ```json
 {
-  "enabled": true,
-  "fallbackToCurrentSession": true,
-  "colors": {
-    "started": "#13233A",
-    "complete": "#143222",
-    "question": "#3A2A12",
-    "permission": "#3A1717",
-    "error": "#3A101C"
-  }
+  "$schema": "https://opencode.ai/tui.json",
+  "theme": "opencode",
+  "plugin": [
+    [
+      "/absolute/path/to/opencode-session-themes/src/tui.js",
+      {
+        "defaultTheme": "opencode",
+        "startedTheme": "tokyonight",
+        "completeTheme": "everforest",
+        "questionTheme": "matrix",
+        "permissionTheme": "orng",
+        "errorTheme": "dracula"
+      }
+    ]
+  ]
 }
 ```
 
-### Options
+Then restart OpenCode.
 
-- `enabled`: Master on/off switch.
-- `fallbackToCurrentSession`: If the exact `ITERM_SESSION_ID` cannot be found, apply the color to the current iTerm2 session of the current window.
-- `colors.started`: Background color for active work.
-- `colors.complete`: Background color for finished work.
-- `colors.question`: Background color when OpenCode needs an answer.
-- `colors.permission`: Background color when OpenCode needs permission.
-- `colors.error`: Background color when OpenCode hits an actual error.
+## Current local example
 
-## Manual install
+On this machine the plugin is loaded from:
 
-If you prefer to clone the repository:
-
-```bash
-git clone https://github.com/guard22/opencode-iterm2-signals.git
-cd opencode-iterm2-signals
-node src/cli.js install
+```text
+/Users/guard2/Projects/opencode-iterm2-signals/src/tui.js
 ```
 
-## Notes
+## Configuration options
 
-- This plugin is intentionally focused on ambient color only.
-- It changes the pane background, not your desktop wallpaper or macOS accent color.
-- The last state remains visible until the next tracked event changes it.
-- The plugin does nothing outside iTerm2 on macOS.
-- The README intentionally documents the GitHub `npx` install flow as the primary path.
+Plugin options supported in `tui.json`:
 
-## Future-friendly package layout
+- `defaultTheme`
+- `startedTheme`
+- `completeTheme`
+- `questionTheme`
+- `permissionTheme`
+- `errorTheme`
+- `pollMs`
+- `debug`
 
-This repository is structured as a normal npm package with a CLI entrypoint and a plugin export, so it can be published to npm later without changing the user-facing workflow.
+The interactive `/theme-states` flow can override these defaults and save user mappings locally.
 
-It also includes `publishConfig.access=public` and is safe to validate with:
+## Development
+
+Validate the plugin locally:
+
+```bash
+npm run check
+```
+
+Dry-run the npm package contents:
 
 ```bash
 npm run package:check
 ```
+
+## Limitations
+
+- This is a plugin-only solution, not an OpenCode core patch.
+- Theme state is **derived locally** from shared session state and events.
+- That means it avoids release-to-release patch maintenance, but it is not a new server-side theme state primitive inside OpenCode.
 
 ## License
 
