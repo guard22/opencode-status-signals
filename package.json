@@ -1,7 +1,7 @@
 {
-  "name": "opencode-session-themes",
+  "name": "opencode-status-signals",
   "version": "0.3.0",
-  "description": "Session-aware OpenCode TUI theme switching with in-app mapping UI.",
+  "description": "Status-aware OpenCode TUI theme switching with in-app mapping UI.",
   "type": "module",
   "exports": {
     ".": "./src/tui.js",
@@ -28,11 +28,11 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/guard22/opencode-iterm2-signals.git"
+    "url": "git+https://github.com/guard22/opencode-status-signals.git"
   },
-  "homepage": "https://github.com/guard22/opencode-iterm2-signals#readme",
+  "homepage": "https://github.com/guard22/opencode-status-signals#readme",
   "bugs": {
-    "url": "https://github.com/guard22/opencode-iterm2-signals/issues"
+    "url": "https://github.com/guard22/opencode-status-signals/issues"
   },
   "publishConfig": {
     "access": "public"

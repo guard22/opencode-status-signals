@@ -1,10 +1,10 @@
-# OpenCode Session Themes
+# OpenCode Status Signals
 
-Session-aware OpenCode theme switching driven by OpenCode's own TUI state.
+Status-aware OpenCode theme switching driven by OpenCode's own TUI state.
 
 This plugin does not touch `iTerm2` or any other terminal emulator. It changes the **OpenCode theme itself** based on the current session state, so the behavior works at the OpenCode layer instead of the terminal layer.
 
-The GitHub repository still uses the older `opencode-iterm2-signals` name for now, but the plugin itself is now a pure OpenCode TUI plugin.
+The repository and package name for this project is `opencode-status-signals`.
 
 ## What it does
 
@@ -101,7 +101,7 @@ Example:
   "theme": "opencode",
   "plugin": [
     [
-      "/absolute/path/to/opencode-session-themes/src/tui.js",
+      "/absolute/path/to/opencode-status-signals/src/tui.js",
       {
         "defaultTheme": "opencode",
         "startedTheme": "tokyonight",
