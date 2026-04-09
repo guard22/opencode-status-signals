@@ -1,8 +1,10 @@
 const SETTING_KEY = "guard22.session-themes.settings"
+const MIN_POLL_MS = 500
+const ERROR_SESSION_TTL_MS = 30 * 60 * 1000
 
 const DEFAULT_OPTIONS = Object.freeze({
   debug: false,
-  pollMs: 250,
+  pollMs: 500,
   defaultTheme: "opencode",
   startedTheme: "tokyonight",
   completeTheme: "everforest",
@@ -96,7 +98,7 @@ function normalizeOptions(options) {
 
   return {
     debug: Boolean(options.debug),
-    pollMs: pickNumber(options.pollMs, DEFAULT_OPTIONS.pollMs),
+    pollMs: Math.max(pickNumber(options.pollMs, DEFAULT_OPTIONS.pollMs), MIN_POLL_MS),
     defaultTheme: pickString(options.defaultTheme, DEFAULT_OPTIONS.defaultTheme),
     startedTheme: pickString(options.startedTheme, DEFAULT_OPTIONS.startedTheme),
     completeTheme: pickString(options.completeTheme, DEFAULT_OPTIONS.completeTheme),
@@ -143,6 +145,11 @@ function routeSessionId(api) {
   return typeof sessionID === "string" && sessionID.length > 0 ? sessionID : null
 }
 
+function routeKey(api) {
+  const sessionID = routeSessionId(api)
+  return sessionID ? `session:${sessionID}` : api.route.current?.name || "home"
+}
+
 function errorNameFromEvent(event) {
   if (!isRecord(event?.properties)) {
     return null
@@ -161,7 +168,7 @@ function themeOrFallback(api, desiredTheme, fallbackTheme) {
     return fallbackTheme
   }
 
-  return api.theme.selected || "opencode"
+  return "opencode"
 }
 
 function currentStatus(api, sessionID) {
@@ -212,13 +219,22 @@ function logDebug(enabled, message, details) {
 
 const tui = async (api, rawOptions) => {
   const options = normalizeOptions(rawOptions)
-  const errorSessions = new Set()
+  const errorSessions = new Map()
   const configuredDefaults = defaultMappings(options)
+  const disposers = []
   let appliedTheme = null
   let lastRouteKey = null
   let settingsOpen = false
   let overridesLoaded = false
+  let previewTheme = null
   let themeOverrides = {}
+
+  function trackDisposer(dispose) {
+    if (typeof dispose === "function") {
+      disposers.push(dispose)
+    }
+    return dispose
+  }
 
   function ensureOverridesLoaded() {
     if (overridesLoaded || !api.kv.ready) {
@@ -264,6 +280,14 @@ const tui = async (api, rawOptions) => {
     }
   }
 
+  function pruneErrors(now = Date.now()) {
+    for (const [sessionID, seenAt] of errorSessions.entries()) {
+      if (now - seenAt > ERROR_SESSION_TTL_MS) {
+        errorSessions.delete(sessionID)
+      }
+    }
+  }
+
   function desiredThemeForSession(sessionID) {
     const mappings = currentMappings()
     if (!sessionID) {
@@ -291,7 +315,11 @@ const tui = async (api, rawOptions) => {
       return themeOrFallback(api, mappings.complete, configuredDefaults.complete)
     }
 
-    return themeOrFallback(api, mappings.complete, configuredDefaults.complete)
+    if (status !== null) {
+      logDebug(options.debug, "unknown session status", { sessionID, status })
+    }
+
+    return themeOrFallback(api, mappings.default, configuredDefaults.default)
   }
 
   function applyTheme(reason, force = false) {
@@ -304,11 +332,10 @@ const tui = async (api, rawOptions) => {
     }
 
     const sessionID = routeSessionId(api)
-    const route = api.route.current
-    const routeKey = sessionID ? `session:${sessionID}` : route?.name || "home"
+    const currentRouteKey = routeKey(api)
     const desiredTheme = desiredThemeForSession(sessionID)
 
-    lastRouteKey = routeKey
+    lastRouteKey = currentRouteKey
     if (appliedTheme === desiredTheme) {
       return
     }
@@ -316,7 +343,7 @@ const tui = async (api, rawOptions) => {
     const ok = api.theme.set(desiredTheme)
     logDebug(options.debug, "theme update", {
       reason,
-      routeKey,
+      routeKey: currentRouteKey,
       sessionID,
       desiredTheme,
       ok
@@ -328,6 +355,7 @@ const tui = async (api, rawOptions) => {
   }
 
   function restoreCurrentTheme(reason) {
+    previewTheme = null
     appliedTheme = null
     applyTheme(reason, true)
   }
@@ -461,30 +489,32 @@ const tui = async (api, rawOptions) => {
     )
   }
 
-  function previewThemeSelection(stateKey, previewTheme, storedTheme) {
-    const ok = api.theme.set(previewTheme)
+  function previewThemeSelection(stateKey, previewThemeName, storedTheme) {
+    const ok = api.theme.set(previewThemeName)
     if (!ok) {
       api.ui.toast({
         variant: "error",
         title: "Preview failed",
-        message: `OpenCode could not switch to \"${previewTheme}\".`
+        message: `OpenCode could not switch to \"${previewThemeName}\".`
       })
       restoreCurrentTheme("settings.preview.failed")
       openThemePicker(stateKey)
       return
     }
 
+    previewTheme = previewThemeName
+
     api.ui.dialog.replace(() =>
       api.ui.DialogConfirm({
-        title: `Preview ${previewTheme}`,
-        message: `Keep ${previewTheme} for ${STATE_META[stateKey].label}?`,
+        title: `Preview ${previewThemeName}`,
+        message: `Keep ${previewThemeName} for ${STATE_META[stateKey].label}?`,
         onConfirm: () => {
           setOverride(stateKey, storedTheme)
           restoreCurrentTheme("settings.preview.saved")
           api.ui.toast({
             variant: "success",
             title: "Theme mapping saved",
-            message: `${STATE_META[stateKey].label} now uses ${previewTheme}.`
+            message: `${STATE_META[stateKey].label} now uses ${previewThemeName}.`
           })
           openHub()
         },
@@ -569,7 +599,7 @@ const tui = async (api, rawOptions) => {
     openHub()
   }
 
-  api.command.register(() => [
+  trackDisposer(api.command.register(() => [
     {
       title: "Theme: Map Session States to Themes",
       value: "guard22.theme-states",
@@ -591,39 +621,39 @@ const tui = async (api, rawOptions) => {
         openResetConfirm()
       }
     }
-  ])
+  ]))
 
-  api.event.on("session.status", (event) => {
+  trackDisposer(api.event.on("session.status", (event) => {
     clearError(event?.properties?.sessionID)
     applyIfCurrentSession(event?.properties?.sessionID, "session.status")
-  })
+  }))
 
-  api.event.on("session.idle", (event) => {
+  trackDisposer(api.event.on("session.idle", (event) => {
     clearError(event?.properties?.sessionID)
     applyIfCurrentSession(event?.properties?.sessionID, "session.idle")
-  })
+  }))
 
-  api.event.on("permission.asked", (event) => {
+  trackDisposer(api.event.on("permission.asked", (event) => {
     applyIfCurrentSession(event?.properties?.sessionID, "permission.asked")
-  })
+  }))
 
-  api.event.on("permission.replied", (event) => {
+  trackDisposer(api.event.on("permission.replied", (event) => {
     applyIfCurrentSession(event?.properties?.sessionID, "permission.replied")
-  })
+  }))
 
-  api.event.on("question.asked", (event) => {
+  trackDisposer(api.event.on("question.asked", (event) => {
     applyIfCurrentSession(event?.properties?.sessionID, "question.asked")
-  })
+  }))
 
-  api.event.on("question.replied", (event) => {
+  trackDisposer(api.event.on("question.replied", (event) => {
     applyIfCurrentSession(event?.properties?.sessionID, "question.replied")
-  })
+  }))
 
-  api.event.on("question.rejected", (event) => {
+  trackDisposer(api.event.on("question.rejected", (event) => {
     applyIfCurrentSession(event?.properties?.sessionID, "question.rejected")
-  })
+  }))
 
-  api.event.on("session.error", (event) => {
+  trackDisposer(api.event.on("session.error", (event) => {
     const sessionID = event?.properties?.sessionID
     if (typeof sessionID !== "string" || sessionID.length === 0) {
       return
@@ -633,21 +663,28 @@ const tui = async (api, rawOptions) => {
       return
     }
 
-    errorSessions.add(sessionID)
+    errorSessions.set(sessionID, Date.now())
     applyIfCurrentSession(sessionID, "session.error")
-  })
+  }))
 
+  // OpenCode exposes route.current but not a route change event, so polling is the
+  // smallest reliable way to react when the user navigates between session screens.
   const poll = setInterval(() => {
+    pruneErrors()
+
     if (settingsOpen && !api.ui.dialog.open) {
       settingsOpen = false
-      restoreCurrentTheme("settings.closed")
+      if (previewTheme !== null) {
+        restoreCurrentTheme("settings.closed")
+      } else {
+        applyTheme("settings.closed", true)
+      }
       return
     }
 
-    const sessionID = routeSessionId(api)
-    const routeKey = sessionID ? `session:${sessionID}` : api.route.current?.name || "home"
+    const currentRouteKey = routeKey(api)
 
-    if (routeKey !== lastRouteKey) {
+    if (currentRouteKey !== lastRouteKey) {
       appliedTheme = null
     }
 
@@ -656,6 +693,9 @@ const tui = async (api, rawOptions) => {
 
   api.lifecycle.onDispose(() => {
     clearInterval(poll)
+    for (const dispose of disposers.splice(0)) {
+      dispose()
+    }
   })
 
   applyTheme("init")

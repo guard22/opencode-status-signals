@@ -4,6 +4,8 @@ Session-aware OpenCode theme switching driven by OpenCode's own TUI state.
 
 This plugin does not touch `iTerm2` or any other terminal emulator. It changes the **OpenCode theme itself** based on the current session state, so the behavior works at the OpenCode layer instead of the terminal layer.
 
+The GitHub repository still uses the older `opencode-iterm2-signals` name for now, but the plugin itself is now a pure OpenCode TUI plugin.
+
 ## What it does
 
 The plugin maps these states to themes:
@@ -115,14 +117,6 @@ Example:
 
 Then restart OpenCode.
 
-## Current local example
-
-On this machine the plugin is loaded from:
-
-```text
-/Users/guard2/Projects/opencode-iterm2-signals/src/tui.js
-```
-
 ## Configuration options
 
 Plugin options supported in `tui.json`:
@@ -137,6 +131,8 @@ Plugin options supported in `tui.json`:
 - `debug`
 
 The interactive `/theme-states` flow can override these defaults and save user mappings locally.
+
+OpenCode's top-level `theme` in `tui.json` should usually match your plugin `defaultTheme`, otherwise the plugin will intentionally override the global theme whenever session state changes.
 
 ## Development
 

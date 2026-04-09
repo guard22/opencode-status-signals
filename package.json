@@ -3,7 +3,6 @@
   "version": "0.3.0",
   "description": "Session-aware OpenCode TUI theme switching with in-app mapping UI.",
   "type": "module",
-  "main": "./src/tui.js",
   "exports": {
     ".": "./src/tui.js",
     "./tui": "./src/tui.js"
@@ -11,8 +10,7 @@
   "files": [
     "src",
     "README.md",
-    "LICENSE",
-    ".gitignore"
+    "LICENSE"
   ],
   "scripts": {
     "check": "node --check src/tui.js",
