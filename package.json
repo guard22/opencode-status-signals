@@ -1,6 +1,6 @@
 {
   "name": "@guard22/opencode-status-signals",
-  "version": "0.3.1",
+  "version": "0.3.2",
   "description": "Visual status signals for OpenCode sessions with in-app theme mapping.",
   "type": "module",
   "exports": {
@@ -9,6 +9,7 @@
   },
   "files": [
     "src",
+    "assets",
     "README.md",
     "LICENSE"
   ],

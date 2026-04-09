@@ -2,6 +2,8 @@
 
 Visual status signals for OpenCode sessions, powered by OpenCode's own TUI theme system.
 
+![OpenCode Status Signals demo](https://raw.githubusercontent.com/guard22/opencode-status-signals/main/assets/opencode-status-signals-demo.gif)
+
 This plugin does not touch `iTerm2` or any other terminal emulator. It changes the **OpenCode theme itself** based on the current session state, so the behavior works at the OpenCode layer instead of the terminal layer.
 
 The repository name is `opencode-status-signals`, and the published package name is `@guard22/opencode-status-signals`.
