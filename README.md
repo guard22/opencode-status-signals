@@ -1,10 +1,10 @@
 # OpenCode Status Signals
 
-Status-aware OpenCode theme switching driven by OpenCode's own TUI state.
+Visual status signals for OpenCode sessions, powered by OpenCode's own TUI theme system.
 
 This plugin does not touch `iTerm2` or any other terminal emulator. It changes the **OpenCode theme itself** based on the current session state, so the behavior works at the OpenCode layer instead of the terminal layer.
 
-The repository and package name for this project is `opencode-status-signals`.
+The repository name is `opencode-status-signals`, and the published package name is `@guard22/opencode-status-signals`.
 
 ## What it does
 
@@ -85,7 +85,7 @@ Theme priority is:
 
 ## Install
 
-Add the plugin to your OpenCode `tui.json`.
+Add the npm package to your OpenCode `tui.json`.
 
 Global config path:
 
@@ -101,7 +101,7 @@ Example:
   "theme": "opencode",
   "plugin": [
     [
-      "/absolute/path/to/opencode-status-signals/src/tui.js",
+      "@guard22/opencode-status-signals",
       {
         "defaultTheme": "opencode",
         "startedTheme": "tokyonight",
@@ -115,7 +115,9 @@ Example:
 }
 ```
 
-Then restart OpenCode.
+Then restart OpenCode. It will install the npm plugin automatically.
+
+If you prefer a local file checkout while developing, you can still point `plugin` at an absolute file path to `src/tui.js`.
 
 ## Configuration options
 

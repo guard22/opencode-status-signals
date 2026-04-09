@@ -1,7 +1,7 @@
 {
-  "name": "opencode-status-signals",
+  "name": "@guard22/opencode-status-signals",
   "version": "0.3.0",
-  "description": "Status-aware OpenCode TUI theme switching with in-app mapping UI.",
+  "description": "Visual status signals for OpenCode sessions with in-app theme mapping.",
   "type": "module",
   "exports": {
     ".": "./src/tui.js",
@@ -38,6 +38,7 @@
     "access": "public"
   },
   "engines": {
-    "node": ">=18"
+    "node": ">=18",
+    "opencode": "^1.3.0"
   }
 }
