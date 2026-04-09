@@ -85,7 +85,23 @@ Theme priority is:
 
 ## Install
 
-Add the npm package to your OpenCode `tui.json`.
+### One-line install
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/guard22/opencode-status-signals/main/install.sh | bash
+```
+
+That command will:
+
+- download the plugin into `~/.config/opencode/plugins/opencode-status-signals.js`
+- patch `~/.config/opencode/tui.json`
+- install the default status-to-theme mapping automatically
+
+Then restart OpenCode and use `/theme-states` to customize it.
+
+### Manual install
+
+If you want to manage the files yourself, copy `src/tui.js` into your OpenCode plugin directory and reference that file from `tui.json`.
 
 Global config path:
 
@@ -101,7 +117,7 @@ Example:
   "theme": "opencode",
   "plugin": [
     [
-      "@guard22/opencode-status-signals",
+      "~/.config/opencode/plugins/opencode-status-signals.js",
       {
         "defaultTheme": "opencode",
         "startedTheme": "tokyonight",
@@ -115,9 +131,7 @@ Example:
 }
 ```
 
-Then restart OpenCode. It will install the npm plugin automatically.
-
-If you prefer a local file checkout while developing, you can still point `plugin` at an absolute file path to `src/tui.js`.
+Then restart OpenCode.
 
 ## Configuration options
 
