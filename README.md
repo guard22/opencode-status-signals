@@ -85,7 +85,19 @@ Theme priority is:
 
 ## Install
 
-### One-line install
+### Recommended install
+
+Use OpenCode's native plugin installer:
+
+```bash
+opencode plugin @guard22/opencode-status-signals@latest --global
+```
+
+That command will install the plugin and patch your global OpenCode TUI config automatically.
+
+Then restart OpenCode and use `/theme-states` to customize it.
+
+### GitHub fallback
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/guard22/opencode-status-signals/main/install.sh | bash
