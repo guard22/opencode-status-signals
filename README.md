@@ -148,6 +148,24 @@ Dry-run the npm package contents:
 npm run package:check
 ```
 
+## Open Source
+
+This is an open source project and contributions are very welcome.
+
+If you want to help, the most useful things are:
+
+- report bugs
+- suggest UX or workflow improvements
+- propose new session-state features
+- submit fixes or cleanup PRs
+- improve documentation
+
+If you have an idea, found a bug, or want to add functionality, please open an issue or submit a pull request.
+
+Even small improvements are helpful and make the project easier to maintain over time.
+
+See `CONTRIBUTING.md` for the lightweight contribution guide.
+
 ## Limitations
 
 - This is a plugin-only solution, not an OpenCode core patch.
