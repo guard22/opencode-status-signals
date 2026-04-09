@@ -30,6 +30,8 @@ By default it uses stable built-in OpenCode themes:
 | `permission` | `orng` |
 | `error` | `dracula` |
 
+The plugin defaults to `forceThemeMode: "dark"`, so built-in themes stay on their dark variants instead of following a light system mode.
+
 ## Why this approach
 
 This project started as a terminal-color experiment, but the correct long-term solution is to use OpenCode's own theme system.
@@ -133,6 +135,7 @@ Example:
     [
       "~/.config/opencode/plugins/opencode-status-signals.js",
       {
+        "forceThemeMode": "dark",
         "defaultTheme": "opencode",
         "startedTheme": "tokyonight",
         "completeTheme": "opencode",
@@ -157,6 +160,7 @@ Plugin options supported in `tui.json`:
 - `questionTheme`
 - `permissionTheme`
 - `errorTheme`
+- `forceThemeMode` (`dark`, `light`, or `system`)
 - `pollMs`
 - `debug`
 

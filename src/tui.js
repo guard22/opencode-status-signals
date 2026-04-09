@@ -5,6 +5,7 @@ const ERROR_SESSION_TTL_MS = 30 * 60 * 1000
 const DEFAULT_OPTIONS = Object.freeze({
   debug: false,
   pollMs: 500,
+  forceThemeMode: "dark",
   defaultTheme: "opencode",
   startedTheme: "tokyonight",
   completeTheme: "opencode",
@@ -91,6 +92,10 @@ function pickNumber(value, fallback) {
   return typeof value === "number" && Number.isFinite(value) && value > 0 ? value : fallback
 }
 
+function pickThemeMode(value, fallback) {
+  return value === "dark" || value === "light" || value === "system" ? value : fallback
+}
+
 function normalizeOptions(options) {
   if (!isRecord(options)) {
     return { ...DEFAULT_OPTIONS }
@@ -99,6 +104,7 @@ function normalizeOptions(options) {
   return {
     debug: Boolean(options.debug),
     pollMs: Math.max(pickNumber(options.pollMs, DEFAULT_OPTIONS.pollMs), MIN_POLL_MS),
+    forceThemeMode: pickThemeMode(options.forceThemeMode, DEFAULT_OPTIONS.forceThemeMode),
     defaultTheme: pickString(options.defaultTheme, DEFAULT_OPTIONS.defaultTheme),
     startedTheme: pickString(options.startedTheme, DEFAULT_OPTIONS.startedTheme),
     completeTheme: pickString(options.completeTheme, DEFAULT_OPTIONS.completeTheme),
@@ -217,6 +223,44 @@ function logDebug(enabled, message, details) {
   console.log(`[opencode-session-themes] ${message}`, details)
 }
 
+function syncForcedThemeMode(api, options) {
+  const desiredMode = options.forceThemeMode
+  if (!desiredMode) {
+    return
+  }
+
+  if (desiredMode === "system") {
+    if (typeof api.theme.unlock === "function") {
+      api.theme.unlock()
+      return
+    }
+
+    if (api.kv.ready && api.kv.get("theme_mode_lock") !== undefined) {
+      api.kv.set("theme_mode_lock", undefined)
+    }
+    return
+  }
+
+  if (typeof api.theme.setMode === "function") {
+    if (api.theme.mode() !== desiredMode || (typeof api.theme.locked === "function" && !api.theme.locked())) {
+      api.theme.setMode(desiredMode)
+    }
+    return
+  }
+
+  if (!api.kv.ready) {
+    return
+  }
+
+  if (api.kv.get("theme_mode") !== desiredMode) {
+    api.kv.set("theme_mode", desiredMode)
+  }
+
+  if (api.kv.get("theme_mode_lock") !== desiredMode) {
+    api.kv.set("theme_mode_lock", desiredMode)
+  }
+}
+
 const tui = async (api, rawOptions) => {
   const options = normalizeOptions(rawOptions)
   const errorSessions = new Map()
@@ -326,6 +370,8 @@ const tui = async (api, rawOptions) => {
     if (!api.theme.ready) {
       return
     }
+
+    syncForcedThemeMode(api, options)
 
     if (settingsOpen && !force) {
       return
@@ -698,6 +744,7 @@ const tui = async (api, rawOptions) => {
     }
   })
 
+  syncForcedThemeMode(api, options)
   applyTheme("init")
 }
 

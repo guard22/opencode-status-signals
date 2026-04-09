@@ -84,6 +84,7 @@ function installEntry() {
   return [
     pluginPath,
     {
+      forceThemeMode: "dark",
       defaultTheme: "opencode",
       startedTheme: "tokyonight",
       completeTheme: "opencode",
